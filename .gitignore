@@ -32,9 +32,19 @@ Thumbs.db
 backend/data/*.db
 backend/data/*.json
 !backend/data/.gitkeep
-ml/checkpoints/
-ml/data/
+# Checkpoints: ignore by default; allow small sklearn bundles for hackathon demos
+ml/checkpoints/**
+!ml/checkpoints/*.joblib
+!ml/checkpoints/*.meta.json
+# Keep ml/data/ in repo for README + .gitkeep; ignore everything else under it by default
+ml/data/**
+!ml/data/.gitkeep
+!ml/data/README.md
+# Labeled frames: not ignored so the tree is visible in the editor / Git when you choose to add it.
+# Delete this folder before push if it is large; keep only checkpoints + small artifacts (see ml/data/README.md).
 ml/runs/
+# Downloaded on first run (~4MB); see ml/infer/baseline.py
+ml/models/*.task
 
 # Expo
 mobile/.expo/

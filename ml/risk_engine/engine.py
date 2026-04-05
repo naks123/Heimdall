@@ -65,6 +65,12 @@ def _stacking_factor(count_in_window: int, exponent: float) -> float:
     return float(count_in_window ** exponent)
 
 
+def _repeat_stack(mult: float, n_in_window: int, max_exp: int = 12) -> float:
+    """mult ** min(n-1, max_exp) — avoids overflow when n is huge (e.g. per-frame labels)."""
+    exp = min(max(0, n_in_window - 1), max_exp)
+    return float(mult**exp)
+
+
 def compute_impairment_risk(
     drowsiness_score: float,
     eyes_closed_score: float,
@@ -118,26 +124,33 @@ def update_risk(
 
     bumps: List[float] = []
 
+    # Count discrete events, not every video frame (CV may label yawn/closure every frame).
+    _YAWN_GAP = 0.55
+    _EC_GAP = 0.22
+
     if signals.yawn_event:
-        yawn_times.append(now)
+        if not yawn_times or (now - yawn_times[-1]) >= _YAWN_GAP:
+            yawn_times.append(now)
         n = len([t for t in yawn_times if now - t <= cfg.yawn_window_sec])
-        stack = _stacking_factor(n, cfg.stacking_exponent)
-        bump = cfg.bump_yawn_first * (cfg.bump_yawn_repeat_multiplier ** max(0, n - 1)) * (
-            0.5 + 0.5 * min(1.0, stack / max(1.0, n ** 0.5))
+        stack = _stacking_factor(min(n, 50), cfg.stacking_exponent)
+        bump = cfg.bump_yawn_first * _repeat_stack(cfg.bump_yawn_repeat_multiplier, n) * (
+            0.5 + 0.5 * min(1.0, stack / max(1.0, min(n, 50) ** 0.5))
         )
         bumps.append(min(0.35, bump))
         debug["yawn_count_window"] = n
 
     if signals.microsleep_like:
-        ec_times.append(now)
+        if not ec_times or (now - ec_times[-1]) >= _EC_GAP:
+            ec_times.append(now)
         n = len([t for t in ec_times if now - t <= cfg.eye_closure_window_sec])
-        bump = cfg.bump_microsleep_like * (cfg.eye_closure_repeat_multiplier ** max(0, n - 1))
+        bump = cfg.bump_microsleep_like * _repeat_stack(cfg.eye_closure_repeat_multiplier, n)
         bumps.append(min(0.65, bump))
         debug["microsleep_stack"] = n
     elif signals.prolonged_eye_closure:
-        ec_times.append(now)
+        if not ec_times or (now - ec_times[-1]) >= _EC_GAP:
+            ec_times.append(now)
         n = len([t for t in ec_times if now - t <= cfg.eye_closure_window_sec])
-        bump = cfg.bump_prolonged_eye_closure * (cfg.eye_closure_repeat_multiplier ** max(0, n - 1))
+        bump = cfg.bump_prolonged_eye_closure * _repeat_stack(cfg.eye_closure_repeat_multiplier, n)
         bumps.append(min(0.5, bump))
         debug["eye_closure_stack"] = n
 
