@@ -174,6 +174,7 @@ def main() -> None:
     win = "Heimdall infer"
     print("Quit: press Q or ESC with the video window focused. On Windows the [X] button often does not stop the loop; use Q/ESC.", flush=True)
 
+    risk_clock_t0 = time.time()
     frame_i = 0
     try:
         while True:
@@ -231,6 +232,9 @@ def main() -> None:
                 else:
                     risk_tracker.step(now_sec, 0.0, 0.0, False)
 
+            elapsed_sess = now_sec - risk_clock_t0
+            last_norm = risk_tracker.normalized_risk_01(elapsed_sess) if risk_tracker is not None else 0.0
+
             if clf_bundle:
                 if args.mock:
                     line = "classification: —  (mock has no real features)"
@@ -268,7 +272,7 @@ def main() -> None:
             if risk_tracker is not None:
                 cv2.putText(
                     frame,
-                    f"risk: {risk_tracker.total_risk:.3f}",
+                    f"risk (0–1 vs time): {last_norm:.3f}",
                     (10, 105),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.65,

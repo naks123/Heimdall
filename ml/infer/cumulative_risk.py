@@ -8,6 +8,9 @@ Cumulative risk from sustained yawning and microsleep episodes.
   Contribution per closed episode: episode_mean_p * duration_sec * sleep_weight (larger).
 
 Episodes flush on face loss (partial duration counted).
+
+normalized_risk_01(elapsed_sec) maps total_risk to [0, 1] as (total_risk / max(min_elapsed, elapsed)) / risk_full_scale_per_sec,
+so the score is a time-adjusted intensity (higher sustained accumulation per second → higher value).
 """
 from __future__ import annotations
 
@@ -27,6 +30,10 @@ class CumulativeRiskConfig:
     sleep_trigger_avg: float = 0.50
     sleep_release_avg: float = 0.42
     sleep_weight: float = 0.38
+
+    # normalized_risk_01 = min(1, (total_risk / max(min_elapsed, elapsed)) / full_scale_per_sec)
+    risk_full_scale_per_sec: float = 0.18
+    risk_normalization_min_elapsed_sec: float = 1.0
 
 
 @dataclass
@@ -150,3 +157,17 @@ class CumulativeRiskTracker:
 
         self.total_risk += self._yawn.step(now_sec, p_yawning)
         self.total_risk += self._sleep.step(now_sec, p_microsleep)
+
+    def normalized_risk_01(self, elapsed_sec: float) -> float:
+        """
+        Map cumulative risk to [0, 1] using average accumulation rate vs session wall time.
+        Uses at least risk_normalization_min_elapsed_sec in the denominator to avoid early spikes.
+        """
+        c = self.config
+        e = max(0.0, float(elapsed_sec))
+        denom = max(c.risk_normalization_min_elapsed_sec, e)
+        rate = self.total_risk / denom
+        cap = c.risk_full_scale_per_sec
+        if cap <= 0:
+            return 0.0
+        return max(0.0, min(1.0, rate / cap))

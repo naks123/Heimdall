@@ -1,6 +1,8 @@
 """Tests for cumulative risk from yawning / microsleep episodes."""
 from __future__ import annotations
 
+import pytest
+
 from infer.cumulative_risk import CumulativeRiskConfig, CumulativeRiskTracker
 
 
@@ -65,6 +67,22 @@ def test_face_loss_flushes_open_episode() -> None:
     before = tr.total_risk
     tr.step(t, 0.85, 0.0, False)
     assert tr.total_risk > before
+
+
+def test_normalized_risk_01_clamped() -> None:
+    cfg = CumulativeRiskConfig(
+        risk_full_scale_per_sec=0.1,
+        risk_normalization_min_elapsed_sec=1.0,
+        yawn_weight=0.0,
+        sleep_weight=0.0,
+    )
+    tr = CumulativeRiskTracker(config=cfg)
+    tr.total_risk = 0.5
+    assert tr.normalized_risk_01(10.0) == pytest.approx(0.5, abs=0.02)
+    tr.total_risk = 0.0
+    assert tr.normalized_risk_01(5.0) == 0.0
+    tr.total_risk = 1.0
+    assert tr.normalized_risk_01(1.0) == 1.0
 
 
 def test_sleep_episode_adds_risk() -> None:
