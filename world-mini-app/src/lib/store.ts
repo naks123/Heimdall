@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, resolve } from "path";
 
 export interface UserRow {
-  id: string; name: string; email: string; overall_driving_score: number; created_at: string;
+  id: string; name: string; email: string; company?: string; overall_driving_score: number; created_at: string;
 }
 export interface SessionRow {
   id: string; user_id: string; started_at: string; ended_at: string | null; status: string;

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   LineChart,
@@ -93,9 +93,16 @@ export default function DriverProfile({ context }: { context: ProfileContext }) 
 
   const viewerCompanyId = context === "company-admin" ? auth.companyId : undefined;
 
-  const data: DriverProfileData | null = useMemo(() => {
-    if (!driverId) return null;
-    return getDriverProfile(driverId, viewerCompanyId);
+  const [data, setData] = useState<DriverProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!driverId) { setLoading(false); return; }
+    setLoading(true);
+    getDriverProfile(driverId, viewerCompanyId).then(d => {
+      setData(d);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, [driverId, viewerCompanyId]);
 
   // Share controls state
@@ -118,6 +125,10 @@ export default function DriverProfile({ context }: { context: ProfileContext }) 
     navigator.clipboard.writeText(shareLink.url).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  if (loading) {
+    return <div style={{ padding: "48px 24px", color: "var(--color-text-muted)", textAlign: "center" }}>Loading profile...</div>;
   }
 
   if (!driverId || !data) {

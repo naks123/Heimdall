@@ -119,65 +119,62 @@ export default function CameraDashboard() {
   };
 
   const riskLevel = Math.round(risk);
-  const riskColor = riskLevel > 60 ? "text-red-400" : (riskLevel > 30 ? "text-amber-400" : "text-emerald-400");
-  const riskBorder = riskLevel > 60 ? "border-red-500 shadow-red-500/50" : "border-emerald-500 shadow-emerald-500/50";
-  const bgWarning = riskLevel > 80 ? "bg-red-900/30" : "bg-slate-950";
+  const liveRiskColor = riskLevel > 60 ? "text-risk-text" : (riskLevel > 30 ? "text-warn-text" : "text-safe-text");
+  const liveBg = riskLevel > 80 ? "bg-risk-bg" : "bg-page";
 
   return (
-    <main className={`min-h-screen ${bgWarning} text-slate-100 flex flex-col p-4 font-sans transition-colors duration-1000`}>
-      <header className="flex items-center justify-between mt-4 mb-4">
-        <button onClick={endSessionAndReturn} className="px-5 py-2.5 bg-slate-800 rounded-full hover:bg-slate-700 text-sm font-bold flex gap-2 items-center text-rose-300">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          End Session
+    <main className={`min-h-screen ${liveBg} text-primary flex flex-col p-6 transition-colors duration-500`}>
+      <header className="flex items-center justify-between mt-2 mb-6">
+        <button onClick={endSessionAndReturn} className="px-3 py-2 border border-border bg-surface rounded text-[12px] font-medium flex gap-2 items-center text-secondary hover:text-primary hover:border-border-2 transition-colors">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          End Trip
         </button>
-        <span className="font-semibold tracking-wider text-sm text-slate-300 flex items-center gap-2">
-           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-           LIVE TRACKING
+        <span className="font-mono text-[11px] text-safe-text border border-safe-border bg-safe-bg px-2 py-1 rounded">
+           LIVE
         </span>
       </header>
 
-      <section className="flex-1 flex flex-col items-center justify-center -mt-4">
+      <section className="flex-1 flex flex-col items-center">
         {hasPermission === false && (
-          <div className="bg-red-900/40 border border-red-500 text-red-100 p-6 rounded-2xl text-center">
-            <h2 className="font-bold text-xl mb-2">Camera Blocked</h2>
-            <p className="text-sm">Please allow camera permissions.</p>
+          <div className="bg-risk-bg border border-risk-border text-risk-text p-4 rounded text-center w-full mb-4">
+            <h2 className="font-bold text-sm mb-1">Camera Blocked</h2>
+            <p className="text-[12px]">Please allow camera permissions to monitor driving.</p>
           </div>
         )}
 
-        <div className={`relative w-full max-w-sm aspect-[3/4] bg-slate-900 rounded-[2.5rem] overflow-hidden border-4 shadow-2xl transition-all duration-700 ${riskBorder}`}>
+        <div className="relative w-full max-w-sm aspect-[3/4] bg-surface rounded overflow-hidden border border-border">
           <video 
             ref={videoRef} 
             autoPlay 
             playsInline 
             muted 
-            className="absolute inset-0 w-full h-full object-cover transform -scale-x-100"
+            className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 opacity-60"
           />
 
-          <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-            <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-              <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                {monitorSec}s LOOPING
+          <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+            <div className="bg-surface px-2 py-1.5 rounded border border-border">
+              <span className="text-[11px] font-mono text-link">
+                {monitorSec}s
               </span>
             </div>
-            <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-center">
-              <span className="block text-[10px] uppercase text-slate-400 font-bold tracking-wider">Risk</span>
-              <span className={`block text-xl font-black ${riskColor}`}>{riskLevel}%</span>
+            <div className="bg-surface px-3 py-2 rounded border border-border text-center">
+              <span className="block text-[9px] uppercase text-muted font-bold tracking-widest">Risk</span>
+              <span className={`block text-xl font-mono font-bold ${liveRiskColor}`}>{riskLevel}%</span>
             </div>
           </div>
           
-          <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 pt-12">
+          <div className="absolute bottom-3 left-3 right-3 bg-surface border border-border rounded p-4">
             <div className="flex justify-between items-end mb-2">
-              <div className="text-left">
-                <span className="block text-2xl font-bold">{yawns}</span>
-                <span className="text-[10px] uppercase text-slate-400 font-bold">Yawns</span>
+              <div>
+                <span className="block text-2xl font-mono text-warn-text">{yawns}</span>
+                <span className="text-[9px] uppercase text-muted font-bold tracking-widest">Yawns</span>
               </div>
               <div className="text-right">
-                <span className="block text-2xl font-bold">{pec}</span>
-                <span className="text-[10px] uppercase text-slate-400 font-bold">Microsleeps</span>
+                <span className="block text-2xl font-mono text-risk-text">{pec}</span>
+                <span className="text-[9px] uppercase text-muted font-bold tracking-widest">Microsleeps</span>
               </div>
             </div>
-            <p className="font-mono text-[10px] text-indigo-300">{statusText}</p>
+            <p className="font-mono text-[10px] text-link mt-3 pt-2 border-t border-border">{statusText}</p>
           </div>
         </div>
       </section>

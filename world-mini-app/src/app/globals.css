@@ -1,26 +1,76 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --color-page:      #0d0f12;
+  --color-surface:   #161820;
+  --color-surface-2: #1c1f2a;
+
+  /* Borders */
+  --color-border:   #1e2230;
+  --color-border-2: #272b3a;
+
+  /* Text */
+  --color-text-primary:   #e2e6ec;
+  --color-text-secondary: #8e98b0;
+  --color-text-muted:     #5e6478;
+
+  /* Safe */
+  --color-safe-text:   #5a8a6a;
+  --color-safe-bg:     #10201a;
+  --color-safe-border: #1a3024;
+
+  /* Attention */
+  --color-warn-text:   #8e7840;
+  --color-warn-bg:     #201c0e;
+  --color-warn-border: #302a14;
+
+  /* High Risk */
+  --color-risk-text:   #9e6a6a;
+  --color-risk-bg:     #201416;
+  --color-risk-border: #301c20;
+
+  /* Interactive */
+  --color-link:       #8e98b0;
+  --color-link-hover: #e2e6ec;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-page: var(--color-page);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-border: var(--color-border);
+  --color-border-2: var(--color-border-2);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+
+  --color-safe-text: var(--color-safe-text);
+  --color-safe-bg: var(--color-safe-bg);
+  --color-safe-border: var(--color-safe-border);
+
+  --color-warn-text: var(--color-warn-text);
+  --color-warn-bg: var(--color-warn-bg);
+  --color-warn-border: var(--color-warn-border);
+
+  --color-risk-text: var(--color-risk-text);
+  --color-risk-bg: var(--color-risk-bg);
+  --color-risk-border: var(--color-risk-border);
+
+  --color-link: var(--color-link);
+  --color-link-hover: var(--color-link-hover);
+
+  --font-sans: var(--font-syne);
+  --font-mono: var(--font-ibm-plex-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }

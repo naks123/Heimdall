@@ -20,10 +20,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ userId:
     const existing = d.users.find((u) => u.id === userId);
     if (existing) {
       existing.name = body.name || existing.name;
+      existing.company = body.company || existing.company;
     } else {
       d.users.push({
         id: userId,
         name: body.name || "Anonymous Driver",
+        company: body.company || "amazon",
         email: "world_id@heimdall.local",
         overall_driving_score: 100,
         created_at: new Date().toISOString()

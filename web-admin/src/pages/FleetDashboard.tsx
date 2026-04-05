@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../services/auth";
 import {
@@ -6,6 +6,7 @@ import {
   getDriversForCompany,
   type CompanyDriverSummary,
   type DateFilter,
+  type Company
 } from "../services/api";
 import { getRiskColor } from "../services/scoring";
 import StatusBadge from "../components/StatusBadge";
@@ -79,23 +80,30 @@ const tdStyle: React.CSSProperties = {
 export default function FleetDashboard() {
   const { auth } = useAuth();
   const companyId = auth.companyId!;
-  const company = getCompany(companyId);
+  const [company, setCompany] = useState<Company | undefined>(undefined);
 
   const [dateFilter,    setDateFilter]    = useState<DateFilter>("month");
   const [sortKey,       setSortKey]       = useState<SortKey>("risk_asc");
   const [statusFilter,  setStatusFilter]  = useState<StatusFilter>("all");
   const [search,        setSearch]        = useState("");
 
-  const allSummaries = useMemo(
-    () => getDriversForCompany(companyId, dateFilter),
-    [companyId, dateFilter],
-  );
+  const [allSummaries, setAllSummaries] = useState<CompanyDriverSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    getCompany(companyId).then(setCompany);
+    getDriversForCompany(companyId, dateFilter).then((data) => {
+      setAllSummaries(data);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [companyId, dateFilter]);
 
   const latestModel = useMemo(() => {
     const versions = allSummaries
       .flatMap(s => s.sessions > 0 ? [] : [])
       .filter(Boolean);
-    return versions.length > 0 ? versions[0] : "v2.1.0";
+    return versions.length > 0 ? versions[0] : "v3.0.1";
   }, [allSummaries]);
 
   // Stats cards
@@ -248,7 +256,11 @@ export default function FleetDashboard() {
             </tr>
           </thead>
           <tbody>
-            {displayed.length === 0 && (
+            {loading ? (
+              <tr>
+                <td colSpan={7} style={{ ...tdStyle, color: "var(--color-text-muted)", textAlign: "center", padding: "32px", border: "none" }}>Loading drivers...</td>
+              </tr>
+            ) : displayed.length === 0 ? (
               <tr>
                 <td
                   colSpan={7}
@@ -263,8 +275,8 @@ export default function FleetDashboard() {
                   No drivers match the current filters.
                 </td>
               </tr>
-            )}
-            {displayed.map(s => (
+            ) : (
+              displayed.map(s => (
               <tr
                 key={s.driver.id}
                 style={{ background: "var(--color-surface)" }}
@@ -309,8 +321,9 @@ export default function FleetDashboard() {
                   <StatusBadge status={s.status} />
                 </td>
               </tr>
-            ))}
-          </tbody>
+            ))
+          )}
+        </tbody>
         </table>
       </div>
 

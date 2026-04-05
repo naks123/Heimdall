@@ -1,9 +1,45 @@
-import { COMPANIES, DRIVERS, EMPLOYMENT, TRIPS, type Company, type Driver, type Employment, type Trip } from "./mockData";
+import { COMPANIES, DRIVERS, EMPLOYMENT, TRIPS } from "./mockData";
 import { calcSafetyScore, getStatus, type SafetyStatus } from "./scoring";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type DateFilter = "week" | "month" | "3months" | "all";
+
+export interface Driver {
+  id: string;
+  name: string;
+  email: string;
+  memberSince: string;
+}
+
+export interface Employment {
+  id: string;
+  driverId: string;
+  companyId: string;
+  startDate: string;
+  endDate: string | null;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+}
+
+export interface Trip {
+  id: string;
+  driverId: string;
+  companyId: string;
+  date: string;
+  origin: string;
+  destination: string;
+  totalDriveDurationSec: number;
+  monitoringDurationSec: number;
+  drowsyPercent: number;
+  maxRiskScore: number;
+  yawnCount: number;
+  prolongedEyeClosureCount: number;
+  modelVersion: string;
+}
 
 export interface CompanyDriverSummary {
   driver: Driver;
@@ -17,7 +53,7 @@ export interface CompanyDriverSummary {
 }
 
 export interface MonthlyPoint {
-  month: string;   // e.g. "Oct '25"
+  month: string;
   avgScore: number;
 }
 
@@ -31,12 +67,12 @@ export interface DriverProfileData {
     avgDrowsyPercent: number;
     peakRiskScore: number;
     avgSafetyScore: number;
-    scoreTrend90: number; // positive = improving
+    scoreTrend90: number; 
   };
   monthlyTrend: MonthlyPoint[];
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Public API (Async) ────────────────────────────────────────────────────────
 
 const TODAY = "2026-04-04";
 
@@ -94,27 +130,18 @@ function calcMonthlyTrend(trips: Trip[]): MonthlyPoint[] {
   return points;
 }
 
-// ─── Public API ───────────────────────────────────────────────────────────────
-
-export function getCompany(companyId: string): Company | undefined {
-  return COMPANIES.find(c => c.id === companyId);
-}
-
-export function getDriver(driverId: string): Driver | undefined {
-  return DRIVERS.find(d => d.id === driverId);
-}
-
-export function getDriversForCompany(
+export function getMockDriversForCompany(
   companyId: string,
   dateFilter: DateFilter,
 ): CompanyDriverSummary[] {
   const employments = EMPLOYMENT.filter(e => e.companyId === companyId);
 
   return employments.map(emp => {
-    const driver = DRIVERS.find(d => d.id === emp.driverId)!;
+    const rawDriver = DRIVERS.find(d => d.id === emp.driverId)!;
+    const driver = { ...rawDriver, email: `${rawDriver.id}@mock.local` };
+    const mappedEmp = { ...emp, id: `${emp.driverId}-${emp.companyId}` };
     const endDate = emp.endDate ?? TODAY;
 
-    // Trips scoped to this company AND employment window
     let trips = TRIPS.filter(
       t =>
         t.driverId === emp.driverId &&
@@ -126,7 +153,7 @@ export function getDriversForCompany(
 
     if (trips.length === 0) {
       return {
-        driver, employment: emp,
+        driver, employment: mappedEmp,
         sessions: 0, lastTripDate: null,
         avgDrowsyPercent: 0, peakRiskScore: 0,
         avgSafetyScore: 100, status: "Safe" as SafetyStatus,
@@ -138,7 +165,7 @@ export function getDriversForCompany(
 
     return {
       driver,
-      employment: emp,
+      employment: mappedEmp,
       sessions:          trips.length,
       lastTripDate:      trips[trips.length - 1].date,
       avgDrowsyPercent:  Math.round(avg(trips.map(t => t.drowsyPercent))),
@@ -149,16 +176,16 @@ export function getDriversForCompany(
   });
 }
 
-export function getDriverProfile(
+export function getMockDriverProfile(
   driverId: string,
   viewerCompanyId?: string,
 ): DriverProfileData | null {
-  const driver = DRIVERS.find(d => d.id === driverId);
-  if (!driver) return null;
+  const rawDriver = DRIVERS.find(d => d.id === driverId);
+  if (!rawDriver) return null;
+  const driver = { ...rawDriver, email: `${rawDriver.id}@mock.local` };
 
-  const employments = EMPLOYMENT.filter(e => e.driverId === driverId);
+  const employments = EMPLOYMENT.filter(e => e.driverId === driverId).map(e => ({ ...e, id: `${e.driverId}-${e.companyId}` }));
 
-  // If a company is viewing, scope trips to their employment window
   let trips: Trip[];
   let viewerEmployment: Employment | null = null;
 
@@ -177,7 +204,6 @@ export function getDriverProfile(
       trips = [];
     }
   } else {
-    // Driver or public: all trips
     trips = TRIPS.filter(t => t.driverId === driverId);
   }
 
@@ -200,23 +226,55 @@ export function getDriverProfile(
   };
 }
 
-// ─── Share token stubs (backend team to implement) ────────────────────────────
-// Required backend endpoints:
-//   POST   /api/share-tokens         → { token, url, expiresAt }
-//   DELETE /api/share-tokens/:token  → 204
-//   GET    /api/profile/:token       → DriverProfileData (no auth required)
+export async function getCompany(companyId: string): Promise<Company | undefined> {
+  const c = COMPANIES.find(c => c.id === companyId);
+  return c || { id: companyId, name: "Heimdall Admin" };
+}
+
+export async function getDriver(driverId: string): Promise<Driver | undefined> {
+  const profile = await getDriverProfile(driverId);
+  return profile?.driver;
+}
+
+export async function getDriversForCompany(
+  companyId: string,
+  dateFilter: DateFilter,
+): Promise<CompanyDriverSummary[]> {
+  try {
+    const res = await fetch(`/api/drivers?companyId=${companyId}&dateFilter=${dateFilter}`);
+    const liveDrivers = res.ok ? await res.json() : [];
+    const mockDrivers = getMockDriversForCompany(companyId, dateFilter);
+    return [...liveDrivers, ...mockDrivers];
+  } catch (e) {
+    return getMockDriversForCompany(companyId, dateFilter);
+  }
+}
+
+export async function getDriverProfile(
+  driverId: string,
+  viewerCompanyId?: string,
+): Promise<DriverProfileData | null> {
+  try {
+    const compStr = viewerCompanyId ? `?viewerCompanyId=${viewerCompanyId}` : '';
+    const res = await fetch(`/api/drivers/${driverId}/profile${compStr}`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {}
+  return getMockDriverProfile(driverId, viewerCompanyId);
+}
+
+// ─── Share token stubs ────────────────────────────────────────────────────────
 
 export function createShareToken(driverId: string): { token: string; url: string } {
   const token = `ht_${driverId}_${Date.now().toString(36)}`;
   return { token, url: `${window.location.origin}/profile/${token}` };
 }
 
-export function revokeShareToken(_token: string): void {
-  // STUB — backend to implement DELETE /api/share-tokens/:token
-}
+export function revokeShareToken(_token: string): void {}
 
-/** Extracts driverId from a mock share token (ht_{driverId}_{ts}). */
 export function getDriverIdFromToken(token: string): string | null {
-  const m = token.match(/^ht_([a-z]+)_/);
+  const m = token.match(/^ht_([a-zA-Z0-9]+)_/);
   return m ? m[1] : null;
 }
+
