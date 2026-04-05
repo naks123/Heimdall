@@ -2,7 +2,8 @@
 torch>=2.1.0
 torchvision>=0.16.0
 numpy>=1.24.0
-opencv-python-headless>=4.8.0
+# Use opencv-python (not headless) for infer_webcam.py — cv2.imshow needs GUI backends on Windows.
+opencv-python>=4.8.0
 mediapipe>=0.10.9
 PyYAML>=6.0.1
 Pillow>=10.0.0
