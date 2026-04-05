@@ -186,17 +186,23 @@ class BaselineDrowsinessPipeline:
         self._prolonged_frames = max(6, _scale_frames_at_fps(12, ef))
         self._microsleep_frames = max(14, _scale_frames_at_fps(28, ef))
 
-    def draw_landmarks_on(self, frame_bgr: np.ndarray) -> None:
-        """Draw tracked landmark points on frame (mutates in place)."""
+    def draw_landmarks_on(self, frame_bgr: np.ndarray, *, point_fraction: float = 1.0) -> None:
+        """Draw tracked landmark points on frame (mutates in place).
+
+        point_fraction: 1.0 = all points; 0.5 ≈ every other point (~half the mesh).
+        """
         pts = self._last_landmark_pixels
         if pts is None:
             return
-        for i, (x, y) in enumerate(pts):
+        pf = float(max(1e-6, min(1.0, point_fraction)))
+        step = max(1, int(round(1.0 / pf)))
+        for i in range(0, len(pts), step):
+            x, y = int(pts[i][0]), int(pts[i][1])
             if x < 0 or y < 0:
                 continue
-            # BGR: cyan mesh, orange for EAR/MAR control points
+            # BGR: orange for EAR/MAR indices, cyan for rest
             color = (0, 165, 255) if i in _EYE_MOUTH_HIGHLIGHT else (255, 255, 0)
-            cv2.circle(frame_bgr, (int(x), int(y)), 2, color, -1, lineType=cv2.LINE_AA)
+            cv2.circle(frame_bgr, (x, y), 2, color, -1, lineType=cv2.LINE_AA)
 
     def process_bgr(self, frame_bgr: np.ndarray) -> PipelineResult:
         h, w = frame_bgr.shape[:2]
