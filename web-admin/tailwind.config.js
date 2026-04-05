@@ -3,8 +3,9 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,tsx}"],
   theme: {
     extend: {
-      colors: {
-        slate: { 850: "#172033", 950: "#0b1020" },
+      fontFamily: {
+        sans: ["Syne", "sans-serif"],
+        mono: ['"IBM Plex Mono"', "monospace"],
       },
     },
   },

@@ -2,7 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Backgrounds */
+  --color-page:      #0d0f12;
+  --color-surface:   #161820;
+  --color-surface-2: #1c1f2a;
+
+  /* Borders */
+  --color-border:   #1e2230;
+  --color-border-2: #272b3a;
+
+  /* Text */
+  --color-text-primary:   #e2e6ec;
+  --color-text-secondary: #8e98b0;
+  --color-text-muted:     #5e6478;
+
+  /* Safe */
+  --color-safe-text:   #5a8a6a;
+  --color-safe-bg:     #10201a;
+  --color-safe-border: #1a3024;
+
+  /* Attention */
+  --color-warn-text:   #8e7840;
+  --color-warn-bg:     #201c0e;
+  --color-warn-border: #302a14;
+
+  /* High Risk */
+  --color-risk-text:   #9e6a6a;
+  --color-risk-bg:     #201416;
+  --color-risk-border: #301c20;
+
+  /* Interactive */
+  --color-link:       #8e98b0;
+  --color-link-hover: #e2e6ec;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--color-page);
+  color: var(--color-text-primary);
+  font-family: "Syne", sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-page); }
+::-webkit-scrollbar-thumb { background: var(--color-border-2); border-radius: 3px; }
+
+/* Recharts tooltip font override */
+.recharts-tooltip-wrapper { font-family: "Syne", sans-serif !important; }
