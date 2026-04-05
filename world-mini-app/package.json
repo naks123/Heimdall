@@ -13,8 +13,9 @@
     "lint": "prettier --check . --ignore-path ../../.prettierignore"
   },
   "dependencies": {
-    "@worldcoin/mini-apps-ui-kit-react": "^1.0.2",
+    "@mediapipe/tasks-vision": "^0.10.34",
     "@worldcoin/idkit": "4.0.0-dev.4777311",
+    "@worldcoin/mini-apps-ui-kit-react": "^1.0.2",
     "@worldcoin/minikit-js": "latest",
     "@worldcoin/minikit-react": "latest",
     "clsx": "^2.1.1",

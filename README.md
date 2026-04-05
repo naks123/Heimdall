@@ -15,6 +15,20 @@ Heimdall is an experimental, mobile-first application designed to monitor driver
 - **Real-Time Camera Integration**: HTML5 WebRTC-based facial tracking visualization directly out of the smartphone browser.
 - **Admin Dashboard**: Live Vite & React dashboard for visualizing fleet sessions, user details, and overall risk factors in real time.
 
+## 🧰 World Mini App — Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Framework** | Next.js 15 (App Router) | Server & client rendering, API routes, file-based routing |
+| **Runtime** | React 19, TypeScript 5 | UI components and type safety |
+| **Authentication** | NextAuth v5 + SIWE | World ID wallet-based Sign-In with Ethereum |
+| **World Integration** | MiniKit SDK, IDKit | Native World App bridge, Sybil-resistant identity verification |
+| **Computer Vision** | MediaPipe Tasks-Vision (WASM) | Real-time face landmark detection via FaceLandmarker in-browser |
+| **Drowsiness Model** | EAR / MAR pipeline (ported from `ml/infer/baseline.py`) | Eye Aspect Ratio & Mouth Aspect Ratio scoring with temporal smoothing |
+| **Styling** | Tailwind CSS 4, custom design tokens | Dark-mode glassmorphic UI with Syne / IBM Plex Mono typography |
+| **Data Store** | JSON flat-file (`data/store.json`) | Lightweight persistence for users, sessions, and trip metrics |
+| **Tunnel / Dev** | ngrok | HTTPS tunnel for World App ↔ localhost communication |
+
 ## 🏗️ Project Architecture & Structure
 
 Heimdall adopts a monorepo setup ensuring shared logic and seamless scaling. The overarching structure is as follows:
