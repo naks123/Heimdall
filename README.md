@@ -1,106 +1,70 @@
-# Heimdall — driver drowsiness awareness (hackathon)
+# Heimdall 🛡️
 
-Smartphone-first monitoring with **experimental** fatigue signals (blinks, prolonged eye closure, yawning, rough drowsiness score). **Not** a medical or legal device. Any “possible impairment risk” label is a **rough behavioral heuristic** only.
+> **Intelligent driver drowsiness awareness powered by smartphone cameras, machine learning, and World ID.**
 
-## Repo layout
+Heimdall is an experimental, mobile-first application designed to monitor drivers and detect early signs of fatigue—such as prolonged eye closure, frequent blinking, and yawning. It generates behavioral heuristics and issues real-time alertness warnings to support driver awareness. By integrating with World ID, we ensure 100% Sybil-resistant "Driving Credit" associated exclusively with unique, verified human drivers.
 
-| Path | Purpose |
-|------|---------|
-| `mobile/` | Expo (React Native) app — camera, motion heuristics, alerts, session report |
-| `web-admin/` | Vite + React admin dashboard (seeded demo data) |
-| `backend/` | Fastify + TypeScript + JSON file store (no native DB build) |
-| `ml/` | MediaPipe baseline, risk engine, FL3D training scaffolds, inference server |
-| `scripts/` | Slurm + shell helpers for cluster / webcam |
-| `docs/` | FL3D notes, Gautschi, demo script |
+*Disclaimer: Heimdall is a hackathon prototype. It is **not** a medical or legal device. Any “possible impairment risk” label is a **rough behavioral heuristic** only.*
 
-## Quick start (local demo)
+---
 
-### 1. Backend API
+## 🌟 Key Features
 
+- **Sybil-Resistant Driver Profiles**: Driver identities and lifelong safe-driving metrics are cryptographically secured using **World ID** zero-knowledge wallet authentication.
+- **Mobile First Mini App**: Fully responsive, glassmorphic Next.js interface designed explicitly to run inside the native **World App** via the MiniKit SDK.
+- **Real-Time Camera Integration**: HTML5 WebRTC-based facial tracking visualization directly out of the smartphone browser.
+- **Admin Dashboard**: Live Vite & React dashboard for visualizing fleet sessions, user details, and overall risk factors in real time.
+
+## 🏗️ Project Architecture & Structure
+
+Heimdall adopts a monorepo setup ensuring shared logic and seamless scaling. The overarching structure is as follows:
+
+| Component Path | Description |
+|----------------|-------------|
+| `world-mini-app/` | **Next.js World Mini App** — The core mobile interface using MiniKit SDK, NextAuth SIWE, and native camera APIs. |
+| `web-admin/` | **React + Vite Dashboard** — administrative web panel proxies to the backend; visualizes metrics and fleet status. |
+| `backend/` | **Fastify + TypeScript API** — central hub orchestrating logic, containing a lightweight JSON file store for simplicity. |
+| `ml/` | **Inference Engine** — Python MediaPipe baseline, risk engine server, and experimental training scaffolds. |
+| `mobile/` | **Legacy Expo App** — Original React Native prototype implementation. |
+| `docs/` | **Project Documentation** — deeper dives into training the FL3D datasets. |
+
+---
+
+## 🚀 Getting Started
+
+To spin up the modern Heimdall World Mini App locally and test it natively on your physical phone:
+
+### 1. Start the HTTP Tunnel
+Because World App requires a secure HTTPS connection or a public URL to communicate with your local machine, we use `ngrok`:
 ```bash
-cd backend
+ngrok http 3000
+```
+*(Keep this terminal running. Copy the `https://...` forwarding URL it generates.)*
+
+### 2. Configure Environment Variables
+Inside the `world-mini-app/` directory, create or modify your `.env.local` file:
+```env
+NEXTAUTH_URL="<YOUR_NGROK_URL>/api/auth"
+AUTH_SECRET="any_random_string_here_for_testing"
+AUTH_TRUST_HOST="true"
+```
+
+### 3. Run the Mini App
+In a new terminal window:
+```bash
+cd world-mini-app
 npm install
-npm run seed    # writes data/store.json with 10 fake users + sessions
-npm run dev     # http://127.0.0.1:3001
+npm run dev
 ```
 
-Health: `GET http://127.0.0.1:3001/health`
+### 4. Test on World App
+1. Navigate to the **Worldcoin Developer Portal**.
+2. Create an App/Action or open your existing Mini App configuration.
+3. Paste your `ngrok` URL into the **App URL** testing field.
+4. Open the physical **World App** on your iOS/Android smartphone.
+5. Go to Settings -> Developer -> Scan the QR Code from the Developer Portal to instantly side-load the Mini App.
+6. Interact with the landing page, click **Login with Wallet**, sign the secure SIWE challenge, and set up your personalized driver profile!
 
-Admin list: `GET http://127.0.0.1:3001/admin/users` with header `X-Admin-Token: demo-admin`
+---
 
-### 2. Admin web
-
-```bash
-cd web-admin
-npm install
-npm run dev     # http://127.0.0.1:5173 — proxies /api → backend
-```
-
-### 3. ML (optional for demo)
-
-```bash
-cd ml
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-set HEIMDALL_MOCK_INFERENCE=1
-uvicorn serve_inference:app --host 127.0.0.1 --port 5055
-```
-
-Webcam (requires MediaPipe): `python ml/scripts/infer_webcam.py --camera 0`
-
-### 4. Mobile (Expo + Android Emulator)
-
-```bash
-cd mobile
-npm install
-npx expo start
-```
-
-Press **`a`** to open the **Android Emulator**. Defaults to **`http://10.0.2.2:3001`** so the app reaches the backend on your PC without a `.env`. For **iOS Simulator**, set `EXPO_PUBLIC_API_BASE=http://127.0.0.1:3001`. See `mobile/README.md` for physical devices.
-
-## Runtime modes
-
-1. **Full demo** — backend seed + web admin + mobile with `/infer/mock` (no Python required).
-2. **Local CV** — run `uvicorn` + MediaPipe; point future integrations at `POST /infer` on port 5055.
-3. **Training** — FL3D preprocess/train scaffolds; real training after Kaggle download (`docs/dataset_fl3d.md`).
-4. **Gautschi** — `sbatch scripts/train_fl3d.slurm` (edit partition/modules); see `docs/gautschi.md`.
-
-## Secrets / keys (optional)
-
-| Item | Required? |
-|------|-----------|
-| Kaggle API for FL3d | Only for dataset download |
-| `EXPO_PUBLIC_GOOGLE_PLACES_KEY` | Optional — mock stops work without it |
-| MongoDB | **Not used** — persistence is JSON file in `backend/data/` |
-
-## Project status checklist
-
-- [x] Monorepo scaffold + shared API types (`shared/api-types.ts`)
-- [x] Risk engine (Python) + `config/risk_defaults.yaml` + pytest
-- [x] MediaPipe baseline inference + mock inference server
-- [x] FL3D preprocess/train/eval stubs + dataset docs
-- [x] Backend REST + seed + mock auth header for admin
-- [x] Admin dashboard + charts + filters
-- [x] Expo app: camera, simulate driving, polling, notifications, TTS, haptics, report, Bluetooth placeholder
-- [x] Gautschi Slurm templates + `docs/gautschi.md`
-- [x] `docs/DEMO_SCRIPT.md`
-
-## Major compromises
-
-- **Backend storage**: JSON file instead of SQLite to avoid native `better-sqlite3` compile issues on Windows without VS Build Tools.
-- **Mobile ↔ ML**: Phone uses REST `/infer/mock` by default; full frame streaming to Python is optional (would use LAN IP + `POST /infer` with base64 JPEG).
-- **Driving detection**: Accelerometer heuristic + **“Simulate driving”** button for reliable stage demos.
-- **FL3D training**: Stub pipeline until the dataset is extracted and manifest populated.
-
-## Commands summary
-
-| Service | Command |
-|---------|---------|
-| Backend | `cd backend && npm run dev` |
-| Web admin | `cd web-admin && npm run dev` |
-| ML API (mock) | `cd ml && set HEIMDALL_MOCK_INFERENCE=1 && uvicorn serve_inference:app --port 5055` |
-| Mobile | `cd mobile && npx expo start` |
-| Gautschi train | `sbatch scripts/train_fl3d.slurm` (after editing for your partition) |
-
-See **`docs/DEMO_SCRIPT.md`** for a 2–3 minute presentation flow.
+Built during a hackathon. Contributions, issue tickets, and ideas are heavily welcome!
