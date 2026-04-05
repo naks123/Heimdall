@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+__pycache__/
+*.py[cod]
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Env & secrets
+.env
+.env.local
+*.pem
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & data
+*.log
+backend/data/*.db
+backend/data/*.json
+!backend/data/.gitkeep
+ml/checkpoints/
+ml/data/
+ml/runs/
+
+# Expo
+mobile/.expo/
+mobile/dist/
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+
+# Next/Vite
+web-admin/dist/
+.cache/
+
+# Kaggle / datasets
+*.zip
+datasets/

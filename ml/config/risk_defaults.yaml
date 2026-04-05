@@ -1,0 +1,29 @@
+# Risk scoring: exponential escalation, cooldown, decay (see ml/risk_engine/)
+decay_per_second: 0.012
+min_risk: 0.0
+max_risk: 1.0
+
+# Event bumps (base values before exponential stacking within window)
+bump_yawn_first: 0.06
+bump_yawn_repeat_multiplier: 1.85
+yawn_window_sec: 45.0
+
+bump_prolonged_eye_closure: 0.18
+bump_microsleep_like: 0.42
+eye_closure_repeat_multiplier: 2.2
+eye_closure_window_sec: 30.0
+
+bump_blink_burst: 0.02
+bump_drowsiness_signal: 0.08
+
+# Exponential weighting for repeated events in same window
+stacking_exponent: 1.35
+cooldown_after_alert_sec: 8.0
+
+# Thresholds for labeling / alerts (app may mirror)
+alert_risk_threshold: 0.55
+high_risk_threshold: 0.75
+
+# Experimental impairment heuristic (behavioral only)
+impairment_from_drowsiness_weight: 0.15
+impairment_from_eye_closure_weight: 0.12
